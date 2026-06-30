@@ -1,0 +1,57 @@
+# Python to Linux Web App on Azure
+trigger:
+- master
+
+variables:
+  azureServiceConnectionId: '25c10e04-68a0-4b3a-bf66-a6db58bb649a'
+  webAppName: 'bcatp-python'
+  vmImageName: 'ubuntu-latest'
+  environmentName: 'bcatp-python'
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+- task: UsePythonVersion@0
+  inputs:
+    versionSpec: '3.11'
+  displayName: 'Use Python 3.11'
+
+# Install dependencies
+- script: |
+    python -m pip install --upgrade pip
+    pip install -r BCATP_Python/requirements.txt
+  displayName: 'Install dependencies'
+
+# Clean staging directory
+- task: DeleteFiles@1
+  displayName: 'Clean artifact staging directory'
+  inputs:
+    SourceFolder: '$(Build.ArtifactStagingDirectory)'
+    Contents: '**/*'
+
+# Copy requirements.txt into BCATP_Python
+- task: CopyFiles@2
+  displayName: 'Copy requirements.txt into BCATP_Python'
+  inputs:
+    SourceFolder: '$(Build.SourcesDirectory)'
+    Contents: 'requirements.txt'
+    TargetFolder: '$(Build.SourcesDirectory)/BCATP_Python'
+
+# Package ONLY the Flask app folder
+- task: ArchiveFiles@2
+  displayName: 'Create deployment ZIP'
+  inputs:
+    rootFolderOrFile: '$(Build.SourcesDirectory)/BCATP_Python'
+    includeRootFolder: false
+    archiveType: 'zip'
+    archiveFile: '$(Build.ArtifactStagingDirectory)/flaskapp.zip'
+    replaceExistingArchive: true
+
+# Publish the ZIP artifact
+- task: PublishBuildArtifacts@1
+  displayName: 'Publish ZIP artifact'
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+    ArtifactName: 'drop'
+    publishLocation: 'Container'

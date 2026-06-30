@@ -1,0 +1,144 @@
+﻿{% extends "base.html" %}
+{% block content %}
+
+<div class="page-header">
+    <div class="header-left">
+        <h1>
+            <a href="https://en.wikipedia.org/wiki/Distant_Early_Warning_Line"
+               target="_blank"
+               class="title-link">
+                Dew Line
+            </a>
+        </h1>
+
+        <!-- LOCAL SEARCH -->
+        <div class="search-wrapper">
+            <input type="text"
+                   id="searchBox"
+                   class="search-box"
+                   placeholder="Search..."
+                   value="{{ starts }}"
+                   onkeyup="searchByLetter()">
+
+            <span class="clear-btn" onclick="clearSearch()">&times;</span>
+        </div>
+
+        <!-- GLOBAL SEARCH -->
+        <input id="globalSearchBox"
+               type="text"
+               class="global-search-box"
+               placeholder="Global search..."
+               onkeyup="globalSearch()">
+    </div>
+    <form method="get" id="perPageForm" style="margin-bottom: 15px;">
+        <input type="hidden" name="starts" value="{{ starts }}">
+
+        <label for="per_page">Items per page:</label>
+        <select name="per_page" id="per_page" onchange="this.form.submit()">
+            <option value="12" {% if per_page == 12 %}selected{% endif %}>12</option>
+            <option value="24" {% if per_page == 24 %}selected{% endif %}>24</option>
+            <option value="0" {% if per_page == 0 %}selected{% endif %}>All</option>
+        </select>
+    </form>
+    <button class="add-btn" onclick="openAddModal('dewline')">Add New Location</button>
+</div>
+
+
+<!-- TABLE -->
+<table>
+    <tr>
+        <th class="name">Name</th>
+        <th class="lon">Longitude</th>
+        <th class="lat">Latitude</th>
+        <th>Comment</th>
+        <th class="actions">Actions</th>
+    </tr>
+    {% set data = rows.items if pagination else rows %}
+
+    {% for row in data %}
+    <!-- ⭐ REQUIRED FOR GLOBAL SEARCH HIGHLIGHT -->
+    <tr id="row-{{ row.id }}">
+        <td class="name">
+            {% if row.wiki %}
+            <a href="{{ row.wiki }}" target="_blank">{{ row.name }}</a>
+            {% else %}
+            {{ row.name }}
+            {% endif %}
+        </td>
+
+        <td class="lon">{{ row.longitude }}</td>
+        <td class="lat">{{ row.latitude }}</td>
+        <td>{{ row.comment }}</td>
+
+        <td class="actions">
+            <div class="action-buttons">
+
+                <a href="#"
+                   class="action-btn edit-btn"
+                   onclick="openEditModal('/dewline/edit/{{ row.id }}'); return false;">
+                    Edit
+                </a>
+
+                <a href="#"
+                   class="action-btn delete-btn disabled"
+                   onclick="confirmDelete('/delete/dewline/{{ row.id }}'); return false;">
+                    Delete
+                </a>
+
+                <a href="#"
+                   class="action-btn map-btn"
+                   onclick="openMap('{{ row.latitude }}', '{{ row.longitude }}'); return false;">
+                    Map
+                </a>
+
+            </div>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+
+
+<!-- PAGINATION -->
+{% if pagination %}
+<div class="pagination">
+    {% if pagination.has_prev %}
+    <a href="?page={{ pagination.prev_num }}&per_page={{ per_page }}&starts={{ starts }}">Previous</a>
+    {% endif %}
+
+    <span>Page {{ pagination.page }} of {{ total_pages }}</span>
+
+    {% if pagination.has_next %}
+    <a href="?page={{ pagination.next_num }}&per_page={{ per_page }}&starts={{ starts }}">Next</a>
+    {% endif %}
+</div>
+{% endif %}
+
+
+<!-- HIGHLIGHT SCRIPT -->
+{% if request.args.get('highlight') %}
+<script>
+window.onload = function() {
+    const id = "{{ request.args.get('highlight') }}";
+    const row = document.getElementById("row-" + id);
+
+    if (row) {
+        row.scrollIntoView({ behavior: "smooth", block: "center" });
+        row.style.backgroundColor = "#fffa9e";
+        setTimeout(() => row.style.backgroundColor = "", 2000);
+    }
+};
+</script>
+{% endif %}
+
+
+<!-- CLEAR SEARCH -->
+<script>
+    function clearSearch() {
+        const box = document.getElementById("searchBox");
+        box.value = "";
+        box.focus();
+        window.location.href = "/dewline";
+    }
+</script>
+
+{% endblock %}
