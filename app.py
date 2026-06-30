@@ -67,7 +67,7 @@ def lookup_location(ip):
 # 3. Database config
 app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv(
     "SQLALCHEMY_DATABASE_URI",
-    "sqlite:///BCATPDB2.db"
+    " "
 )
 
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
