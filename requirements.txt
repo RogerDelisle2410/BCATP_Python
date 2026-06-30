@@ -1,8 +1,0 @@
-Flask
-Flask-SQLAlchemy
-SQLAlchemy
-gunicorn
-Flask-Cors
-requests
-pyodbc
- 
