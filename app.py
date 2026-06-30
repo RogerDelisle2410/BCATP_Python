@@ -21,6 +21,7 @@ behavior.
 from flask import Flask, render_template, request, redirect, jsonify
 from models import (db,Bcatp, Army, Airforce, Navy, Dewline, Pinetree, Defunct, Midcanada, Planes, Ships, Tanks, VisitorCount, VisitorLog,)
 from flask_cors import CORS
+import os
 
 # 1. Create the Flask app FIRST
 app = Flask(__name__, instance_relative_config=True) 
@@ -63,16 +64,10 @@ def lookup_location(ip):
     except:
         return "Unknown 2"
 
-
-
 # 3. Database config
-# app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///BCATPDB2.db'
-app.config["SQLALCHEMY_DATABASE_URI"] = (
-    "mssql+pyodbc://CloudSAd268ac1d%40bcatp:Bonnie01!"
-    "@bcatp.database.windows.net:1433/bcatp"
-    "?driver=ODBC+Driver+18+for+SQL+Server"
-    "&Encrypt=yes"
-    "&TrustServerCertificate=no"
+app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv(
+    "SQLALCHEMY_DATABASE_URI",
+    "sqlite:///BCATPDB2.db"
 )
 
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
@@ -912,11 +907,13 @@ def visitlog():
 # ---------------------------------------------------------
 import requests
 
-WEBHOOK_URL = "https://discord.com/api/webhooks/1513703339571941587/98DwSjFEdRwDLkkUeESPYnSFVB9Gqq3WzNXGMmT3BPgSJpI01nAirsuX8WKrfQCP1ajp"
-
+WEBHOOK_URL = os.getenv("DISCORD_WEBHOOK_URL", "")
 
 @app.route("/notify", methods=["POST"])
 def notify():
+    if not WEBHOOK_URL:
+        return jsonify({"status": "error", "message": "Webhook not configured"}), 500
+    
     try:
         requests.post(
             WEBHOOK_URL, json={"content": "Someone visited your JRD Projects page!"}
