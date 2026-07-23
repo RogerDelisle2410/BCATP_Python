@@ -39,10 +39,7 @@ CORS(
         "methods": ["GET", "POST", "OPTIONS"],
         "allow_headers": ["Content-Type"]
     }}
-)
-
-
-
+) 
 
 import requests
 
